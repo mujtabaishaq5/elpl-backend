@@ -1,0 +1,68 @@
+grammar ELPL;
+
+program     : statement* EOF ;
+statement   : assignment
+            | printStmt
+            | ifStmt
+            | whileStmt
+            | forStmt
+            | repeatStmt
+            | functionDecl
+            | functionCallStmt
+            | returnStmt
+            | stopStmt
+            | arrayDecl
+            | arrayAssign
+            | block
+            ;
+
+block       : '{' statement* '}' ;
+
+assignment  : ('let' | 'var') IDENTIFIER '=' expression ;
+printStmt   : 'print' expression (',' expression)* ;
+ifStmt      : 'if' condition block ('else' block)? ;
+whileStmt   : 'while' condition block ;
+forStmt     : 'for' IDENTIFIER 'from' expression 'to' expression block ;
+repeatStmt  : 'repeat' NUMBER 'times' block ;
+functionDecl: 'function' IDENTIFIER '(' params? ')' block ;
+functionCallStmt: 'call' IDENTIFIER '(' args? ')' ;
+returnStmt  : 'return' expression ;
+stopStmt    : 'stop' ;
+arrayDecl   : 'array' IDENTIFIER '=' '[' expressionList? ']' ;
+arrayAssign : IDENTIFIER '[' expression ']' '=' expression ;
+
+params      : IDENTIFIER (',' IDENTIFIER)* ;
+args        : expression (',' expression)* ;
+expressionList : expression (',' expression)* ;
+
+expression  : orExpr ;
+orExpr      : andExpr ('or' andExpr)* ;
+andExpr     : equalityExpr ('and' equalityExpr)* ;
+equalityExpr: relationalExpr (('is equal to') relationalExpr)* ;
+relationalExpr
+            : additiveExpr (('is greater than' | 'is less than' |
+                            'is greater than or equal to' | 'is less than or equal to')
+                            additiveExpr)* ;
+additiveExpr: multExpr (('add' | 'subtract') multExpr)* ;
+multExpr    : unaryExpr (('multiply' | 'divide') unaryExpr)* ;
+unaryExpr   : ('not' | 'negate') unaryExpr | primary ;
+primary     : NUMBER
+            | BOOLEAN
+            | STRING
+            | IDENTIFIER
+            | IDENTIFIER '(' args? ')' // function call
+            | IDENTIFIER '[' expression ']' // array access
+            | '(' expression ')' ;
+
+condition   : expression (COMPARATOR expression)? ;
+
+COMPARATOR  : 'is equal to' | 'is greater than' | 'is less than'
+            | 'is greater than or equal to' | 'is less than or equal to' ;
+
+NUMBER      : [0-9]+ ('.' [0-9]+)? ;
+BOOLEAN     : 'true' | 'false' ;
+STRING      : '"' (~["\\] | '\\' .)* '"' ;
+IDENTIFIER  : [a-zA-Z_][a-zA-Z0-9_]* ;
+
+WS          : [ \t\r\n]+ -> skip ;
+COMMENT     : '//' ~[\r\n]* -> skip ;
